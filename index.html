@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BLA VÖRÐURINN</title>
+  <style>
+    :root {
+      --bg: #0f1220;
+      --panel: #151a2d;
+      --muted: #8f9bb3;
+      --text: #e7e9ef;
+      --accent: #6ea8fe;
+      --accent-2: #a78bfa;
+      --danger: #ff6b6b;
+      --ok: #2dd4bf;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 70% -10%, #1b2040, #0c0f1c 60%, #0a0c18);
+      color: var(--text);
+      display: grid; place-items: start center; padding: 32px; gap: 24px;
+    }
+    .app {
+      width: min(920px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    header {
+      padding: 16px 20px;
+      background: linear-gradient(120deg, rgba(110,168,254,.15), rgba(167,139,250,.12));
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .headrow { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    h1 { margin: 0; font-size: clamp(20px, 2.6vw, 30px); letter-spacing: .2px; }
+    .sub { color: var(--muted); margin-top: 6px; font-size: 14px; }
+
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; padding: 20px; }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+
+    .big {
+      font-size: clamp(32px, 6vw, 56px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+    }
+    .muted { color: var(--muted); font-size: 14px; }
+
+    .btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
+    .btn {
+      appearance: none; border: none; cursor: pointer;
+      padding: 14px 14px; border-radius: 14px; font-weight: 700; font-size: 16px;
+      color: #0b1020; background: #eaefff; transition: transform .04s ease, filter .15s ease, background .2s;
+      box-shadow: 0 6px 18px rgba(110,168,254,.25), inset 0 1px 0 rgba(255,255,255,.6);
+    }
+    .btn:hover { filter: brightness(1.05); }
+    .btn:active { transform: translateY(1px); }
+    .beer { background: #c7f9cc; }
+    .shot { background: #fef08a; }
+    .cocktail { background: #fbcfe8; }
+    .wine { background: #e9d5ff; }
+
+    .ghost {
+      background: transparent; color: var(--muted); border: 1px dashed rgba(255,255,255,.18);
+      padding: 10px 12px; border-radius: 12px; cursor: pointer; font-weight: 600;
+    }
+    .ghost:hover { border-style: solid; color: #cfd5e6; }
+
+    .warn { background: rgba(255,107,107,.12); border: 1px solid rgba(255,107,107,.35); color: #ffd7d7; padding: 12px 14px; border-radius: 12px; margin-top: 12px; }
+
+    .list { margin-top: 10px; max-height: 260px; overflow: auto;}
+    .item { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,.08); }
+    .pill { padding: 4px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; border: 1px solid rgba(255,255,255,.12); }
+    .good { color: var(--ok); border-color: rgba(45,212,191,.3); background: rgba(45,212,191,.08); }
+    .bad { color: var(--danger); border-color: rgba(255,107,107,.4); background: rgba(255,107,107,.08); }
+
+    .toolbar { display:flex; gap:8px; flex-wrap: wrap; margin-top:12px; }
+    .sr-only { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
+
+    /* Menu (dropdown) */
+    .menu-wrap { position: relative; }
+    .menu-btn { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,.25); padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+    .menu { position: absolute; right: 0; top: 42px; background: var(--panel); border:1px solid rgba(255,255,255,.15); border-radius: 12px; box-shadow: var(--shadow); min-width: 220px; padding: 6px; }
+    .menu-item { width: 100%; text-align: left; background: transparent; color: var(--text); border: none; padding: 10px 12px; border-radius: 10px; cursor:pointer; }
+    .menu-item:hover { background: rgba(255,255,255,.06); }
+
+    /* Modal */
+    .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: grid; place-items: center; }
+    [hidden] { display: none !important; }
+    .modal { width: min(520px, 92vw); background: var(--panel); border:1px solid rgba(255,255,255,.15); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
+    .modal h2 { margin: 0 0 12px 0; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .field { display:flex; flex-direction: column; gap:6px; }
+    .field label { font-size: 14px; color: var(--muted); }
+    .field input { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18); background: #0e1426; color: var(--text); }
+    .modal-actions { display:flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+    .btn-primary { background: #c7d2fe; color: #0b1020; border: none; padding: 10px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px dashed rgba(255,255,255,.25); padding: 10px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    /* Ensure hidden elements really hide (modal/backdrop, etc.) */
+    [hidden] { display: none !important; }
+
+    /* --- Mobile polish --- */
+    @media (max-width: 480px) {
+      html, body { overflow-x: hidden; }
+
+      /* Respect iPhone safe-area and reduce outer padding */
+      body {
+        padding:
+          max(12px, env(safe-area-inset-top))
+          12px
+          max(12px, env(safe-area-inset-bottom));
+      }
+
+      .app { width: 100%; border-radius: 12px; }
+      header { padding: 12px 14px; }
+      .headrow { align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+
+      h1 { font-size: 20px; }
+      .sub {
+        font-size: 12px;
+        line-height: 1.3;
+        white-space: normal;
+        word-break: break-word;
+      }
+
+      .grid { padding: 12px; gap: 12px; }
+      .card { padding: 14px; }
+      .row { gap: 10px; }
+
+      /* Smaller “big number” so totals fit on tiny screens */
+      .big { font-size: clamp(24px, 9vw, 36px); }
+
+      /* Buttons: 2 columns on phones, comfy tap targets */
+      .btns { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .btn { padding: 12px; font-size: 15px; border-radius: 12px; }
+
+      /* Lists: keep inside viewport height and scroll smoothly */
+      .list {
+        max-height: 34vh;
+        -webkit-overflow-scrolling: touch;
+      }
+      .item { padding: 8px 0; }
+
+      /* Menu: keep within screen as a compact sheet */
+      .menu {
+        right: 12px;
+        top: 40px;
+        min-width: 86vw;
+        max-width: 92vw;
+      }
+
+      /* Modal: full-width feel + stacked fields */
+      .modal { width: 94vw; }
+      .form-row { grid-template-columns: 1fr; }
+      .field input { font-size: 16px; } /* avoids iOS zoom-on-focus */
+    }
+
+    /* Optional: widen button grid again on small tablets */
+    @media (min-width: 520px) and (max-width: 720px) {
+      .btns { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    /* If you prefer 4-wide buttons on wider screens: */
+    @media (min-width: 900px) {
+      .btns { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    /* If your app uses the header as a top bar, you can keep it visible on mobile: */
+    @media (max-width: 480px) {
+      .app > header { position: sticky; top: 0; z-index: 10; }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-label="Áfengiseiningar — stillanlegar stillingar">
+    <header>
+      <div class="headrow">
+        <div>
+          <h1>BLA VÖRÐURINN</h1>
+          <div class="sub" id="subline">Bjór/Skot = 1.0 · Kokteill = 1.5 · Hámark: 6.5 einingar · Biðtími: 60 mín</div>
+        </div>
+        <div class="menu-wrap">
+          <button class="menu-btn" id="menuBtn">☰ Valmynd</button>
+          <div class="menu" id="menu" hidden>
+            <button class="menu-item" id="openSettings">Stillingar</button>
+            <button class="menu-item" id="newSession">Ný lota</button>
+            <button class="menu-item" id="userSettings">Notandastillingar</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Totals / Remaining -->
+      <section class="card" aria-live="polite">
+        <div class="row">
+          <div>
+            <div class="muted">Núverandi einingar</div>
+            <div class="big" id="currentUnits">0.0</div>
+          </div>
+          <div style="text-align:right">
+            <div class="muted">Einingar eftir</div>
+            <div class="big" id="remainingUnits">6.5</div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="ghost" id="undoBtn" title="Afturkalla síðasta drykk">↶ fjarlægja síðasta</button>
+          <button class="ghost" id="resetBtn" title="Hreinsa alla drykki">✕ Endurstilla</button>
+          <span class="muted" id="lastUpdated" aria-live="off"></span>
+        </div>
+      </section>
+
+      <!-- Add drink -->
+      <section class="card">
+        <div class="muted">Bæta við drykk</div>
+        <div class="btns">
+          <button class="btn beer" data-units="10">🍺 Bjór (1.0)</button>
+          <button class="btn shot" data-units="10">🥃 Skot (1.0)</button>
+          <button class="btn cocktail" data-units="15">🍸 Kokteill (1.5)</button>
+          <button class="btn wine" data-units="15">🍷 Vín (1.5)</button>
+        </div>
+        <div id="warning" class="warn" style="display:none"></div>
+      </section>
+
+      <!-- Next available times -->
+      <section class="card">
+        <div class="muted">Hvenær er næsti?</div>
+        <div class="list" id="nextTimes"></div>
+      </section>
+
+      <!-- Active drinks list -->
+      <section class="card">
+        <div class="muted">Virkir drykkir:</div>
+        <div class="list" id="activeList"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="backdrop" id="settingsBackdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <h2 id="settingsTitle">Stillingar</h2>
+      <div class="form-row">
+        <div class="field">
+          <label for="maxUnitsInput">Hámarks einingar</label>
+          <input type="number" id="maxUnitsInput" step="0.1" min="0" value="6.5">
+        </div>
+        <div class="field">
+          <label for="cooldownMinutesInput">Biðtími (mínútur)</label>
+          <input type="number" id="cooldownMinutesInput" step="1" min="1" value="60">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="cancelSettings">Hætta við</button>
+        <button class="btn-primary" id="saveSettings">Vista</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Tracker with adjustable settings + 10-unit strong warning
+     * - Beer/Shot = 1.0 (10 tenths), Cocktail = 1.5 (15 tenths)
+     * - Max units & cooldown (minutes) configurable (saved in localStorage).
+     * - Each drink expires after cooldown minutes.
+     * - Strong warning if total > 10.0 units (HARD_LIMIT).
+     */
+    const UNIT_SCALE = 10;
+    const HARD_LIMIT = 100; // 10.0 units (tenths)
+    const DEFAULT_SETTINGS = { maxUnits: 6.5, decayMinutes: 60 };
+
+    // Storage
+    function loadDrinksRaw() {
+      try { const raw = localStorage.getItem('drinks.v1'); const arr = raw ? JSON.parse(raw) : []; return Array.isArray(arr) ? arr : []; }
+      catch { return []; }
+    }
+    function saveDrinks(drinks) { localStorage.setItem('drinks.v1', JSON.stringify(drinks)); }
+    function loadSettings() {
+      try { const raw = localStorage.getItem('settings.v1'); const s = raw ? JSON.parse(raw) : DEFAULT_SETTINGS; return { ...DEFAULT_SETTINGS, ...s }; }
+      catch { return { ...DEFAULT_SETTINGS }; }
+    }
+    function saveSettings(s) { localStorage.setItem('settings.v1', JSON.stringify(s)); }
+
+    // Elements
+    const els = {
+      current: document.getElementById('currentUnits'),
+      remaining: document.getElementById('remainingUnits'),
+      warning: document.getElementById('warning'),
+      nextTimes: document.getElementById('nextTimes'),
+      activeList: document.getElementById('activeList'),
+      lastUpdated: document.getElementById('lastUpdated'),
+      undoBtn: document.getElementById('undoBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      subline: document.getElementById('subline'),
+      // Menu + modal
+      menuBtn: document.getElementById('menuBtn'),
+      menu: document.getElementById('menu'),
+      openSettings: document.getElementById('openSettings'),
+      newSessionBtn: document.getElementById('newSession'),
+      userSettingsBtn: document.getElementById('userSettings'),
+      settingsBackdrop: document.getElementById('settingsBackdrop'),
+      maxUnitsInput: document.getElementById('maxUnitsInput'),
+      cooldownMinutesInput: document.getElementById('cooldownMinutesInput'),
+      saveSettingsBtn: document.getElementById('saveSettings'),
+      cancelSettingsBtn: document.getElementById('cancelSettings'),
+    };
+
+    function now() { return Date.now(); }
+
+    // Core
+    function prune(drinks, t = now(), decayMs) {
+      const ms = decayMs ?? (loadSettings().decayMinutes * 60 * 1000);
+      return drinks.filter(d => (t - d.t) < ms);
+    }
+    function addDrink(units10) {
+      const drinks = prune(loadDrinksRaw());
+      drinks.push({ t: now(), u: units10 });
+      saveDrinks(drinks);
+      render();
+      flashWarnings();
+    }
+    function undoLast() {
+      const drinks = loadDrinksRaw(); drinks.pop(); saveDrinks(drinks); render();
+    }
+    function resetAll() {
+      if (!confirm('Hreinsa alla drykki?')) return; saveDrinks([]); render();
+    }
+    function newSession() { saveDrinks([]); render(); }
+
+    function fmtUnits(u10) { return (u10/UNIT_SCALE).toFixed(1); }
+    function humanDuration(ms) {
+      if (ms <= 0) return 'núna';
+      const s = Math.ceil(ms/1000);
+      const h = Math.floor(s/3600);
+      const m = Math.floor((s%3600)/60);
+      const sec = s % 60;
+      const parts = [];
+      if (h) parts.push(`${h} klst`);
+      if (m) parts.push(`${m} mín`);
+      if (!h && !m) parts.push(`${sec} sek`);
+      return parts.join(' ');
+    }
+
+    function computeState() {
+      const s = loadSettings();
+      const limit10 = Math.round(s.maxUnits * UNIT_SCALE);
+      const decayMs = s.decayMinutes * 60 * 1000;
+      const t = now();
+      const drinks = prune(loadDrinksRaw(), t, decayMs);
+      const active = drinks.map(d => ({...d, exp: d.t + decayMs, rem: (d.t + decayMs) - t})).sort((a,b) => a.exp - b.exp);
+      const current = active.reduce((sum, d) => sum + d.u, 0);
+      const remaining = Math.max(0, limit10 - current);
+      return { t, active, current, remaining, limit10, decayMs, settings: s };
+    }
+
+    function timeUntilCapacity(need10, state) {
+      if (state.remaining >= need10) return 0;
+      let deficit = need10 - state.remaining, cum = 0;
+      for (const d of state.active) { cum += d.u; if (cum >= deficit) return Math.max(0, d.rem); }
+      return state.active.length ? state.active[state.active.length - 1].rem : 0;
+    }
+
+    function flashWarnings() {
+      const state = computeState();
+      let msg = '';
+      if (state.current > HARD_LIMIT) {
+        const waitMs = timeUntilCapacity(UNIT_SCALE, state);
+        msg = `⚠️CHILLAÐU. Bíddu í ${humanDuration(waitMs)} fyrir næsta drykk.`;
+      } else if (state.current > state.limit10) {
+        const waitMs = timeUntilCapacity(UNIT_SCALE, state);
+        msg = `Hægan nú! Bíddu í ${humanDuration(waitMs)} fyrir annan drykk.`;
+      }
+      if (msg) { els.warning.style.display = 'block'; els.warning.textContent = msg; }
+      else { els.warning.style.display = 'none'; els.warning.textContent = ''; }
+    }
+
+    function render() {
+      const state = computeState();
+      // Header subline reflects settings
+      els.subline.textContent = `Bjór/Skot = 1.0 · Vín/Kokteill = 1.5 · Hámark: ${fmtUnits(state.limit10)} einingar · Biðtími: ${Math.round(state.decayMs/60000)} mín`;
+
+      // Totals
+      els.current.textContent = fmtUnits(state.current);
+      els.remaining.textContent = fmtUnits(state.remaining);
+      els.lastUpdated.textContent = new Date(state.t).toLocaleTimeString();
+
+      // Warnings
+      flashWarnings();
+
+      // Next available times
+      const needBeer = UNIT_SCALE, needShot = UNIT_SCALE, needCocktail = 15;
+      const tBeer = timeUntilCapacity(needBeer, state);
+      const needWine = 15;       // 1.5
+      const tWine = timeUntilCapacity(needWine, state);
+      const tShot = timeUntilCapacity(needShot, state);
+      const tC = timeUntilCapacity(needCocktail, state);
+      els.nextTimes.innerHTML = `
+  <div class="item">
+    <div>🍺 Bjór / 🥃 Skot</div>
+    <div class="pill ${tBeer? 'bad':'good'}">${humanDuration(tBeer)}</div>
+  </div>
+  <div class="item">
+    <div>🍸 Kokteill</div>
+    <div class="pill ${tC? 'bad':'good'}">${humanDuration(tC)}</div>
+  </div>
+  <div class="item">
+    <div>🍷 Vín</div>
+    <div class="pill ${tWine? 'bad':'good'}">${humanDuration(tWine)}</div>
+  </div>`;
+
+
+      // Active list
+      if (!state.active.length) {
+        els.activeList.innerHTML = '<div class="muted">Engir virkir drykkir, rífðu þig í gang!</div>';
+      } else {
+        els.activeList.innerHTML = state.active.map((d, i) => `
+          <div class="item" aria-label="Virkur drykkur ${i+1}">
+            <div>${d.u === 10 ? '1.0 eining' : '1.5 einingar'} · bætt við ${new Date(d.t).toLocaleTimeString()}</div>
+            <div class="pill">eyðist eftir ${humanDuration(d.rem)}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Menu / modal wiring
+    function toggleMenu(show) {
+      const isHidden = els.menu.hasAttribute('hidden');
+      if (show === true || (show !== false && isHidden)) els.menu.removeAttribute('hidden');
+      else els.menu.setAttribute('hidden', '');
+    }
+    function openSettingsModal() {
+      const s = loadSettings();
+      els.maxUnitsInput.value = s.maxUnits;
+      els.cooldownMinutesInput.value = s.decayMinutes;
+      els.settingsBackdrop.removeAttribute('hidden');
+      toggleMenu(false);
+    }
+    function closeSettingsModal() { els.settingsBackdrop.setAttribute('hidden', ''); }
+    function parseUnitsInput(v) { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? DEFAULT_SETTINGS.maxUnits : Math.max(0, n); }
+    function parseMinutesInput(v) { const n = parseInt(String(v), 10); return isNaN(n) ? DEFAULT_SETTINGS.decayMinutes : Math.max(1, n); }
+
+    // Events
+    document.querySelectorAll('.btn[data-units]').forEach(btn => btn.addEventListener('click', () => addDrink(parseInt(btn.dataset.units, 10))));
+    els.undoBtn.addEventListener('click', undoLast);
+    els.resetBtn.addEventListener('click', resetAll);
+
+    els.menuBtn.addEventListener('click', () => toggleMenu());
+    document.addEventListener('click', (e) => { if (!els.menu.contains(e.target) && e.target !== els.menuBtn) toggleMenu(false); });
+    els.openSettings.addEventListener('click', openSettingsModal);
+    els.newSessionBtn.addEventListener('click', () => { newSession(); toggleMenu(false); });
+    els.userSettingsBtn.addEventListener('click', () => {}); // intentionally no-op
+
+    els.cancelSettingsBtn.addEventListener('click', closeSettingsModal);
+    els.settingsBackdrop.addEventListener('click', (e) => { if (e.target === els.settingsBackdrop) closeSettingsModal(); });
+    els.saveSettingsBtn.addEventListener('click', () => {
+      const maxUnits = parseUnitsInput(els.maxUnitsInput.value);
+      const decayMinutes = parseMinutesInput(els.cooldownMinutesInput.value);
+      saveSettings({ maxUnits, decayMinutes });
+      closeSettingsModal();
+      render();
+    });
+
+    // Live updates
+    render();
+    setInterval(render, 1000);
+  </script>
+</body>
+</html>
